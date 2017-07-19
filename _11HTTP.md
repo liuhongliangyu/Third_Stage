@@ -230,5 +230,123 @@ public class LoadAudioSource : MonoBehaviour
 
 http://api.k780.com/?app=idcard.get&appkey=10003&sign=b59bc3ef6191eb9f747dd4e83c99f2a4&format=xml&idcard=身份证号码 
 
+# 课后练习——疯狂猜成语游戏
 
+与数据库关联，进行登录和注册
+
+* 注意：要有已做好的数据库。
+
+登录请求
+
+```C#
+using UnityEngine;
+using System.Collections;
+using System.Linq;
+
+public class UILoginHandler : UIHandler
+{
+
+    private UIButton login_btn;  //登录按钮
+    private UIButton register_btn;  //注册按钮
+    private UIInput username;   //用户名输入 
+    private UIInput password;   //密码输入
+    private string pathPost = "http://localhost/crazyphrase/login.php";  //POST请求 登录
+	// Use this for initialization
+	void Start ()
+	{
+	    login_btn = GetComponentByName<UIButton>("login_btn");
+            EventDelegate.Add(login_btn.onClick, OnLogin_btnClick);   //给按钮注册事件
+	    register_btn = GetComponentByName<UIButton>("register_btn");
+	    EventDelegate.Add(register_btn.onClick, OnRegister_btnClck);  //给按钮注册事件
+	    username = GetComponentByName<UIInput>("username");
+            password = GetComponentByName<UIInput>("password");
+	}
+	
+
+    void OnLogin_btnClick()
+    {
+        StartCoroutine(LoadImage(pathPost, username.value, password.value));   //开时调用协程 
+    }
+
+    void OnRegister_btnClck()
+    {
+        UIGameManager.Instance.ShowUI(UIName.UIRegister);  //切换UI
+        UIGameManager.Instance.HideUI(UIName.UILogin);
+    }
+    IEnumerator LoadImage(string url, string Text, string psw)     //协程
+    {
+        WWWForm form = new WWWForm();   //创建WWWForm对象
+        form.AddField("username", Text);  //添加内容
+        form.AddField("password", psw);
+        WWW www = new WWW(url, form);   //通过地址，表单构建WWW对象
+        yield return www;  //等待加载
+        if (www.isDone)  //如果加载完成
+        {
+            //print(www.text);
+            string[] str= www.text.Split('|');  //将字符串以'|'分割开，成多个单字符串
+            for (int i = 0; i < str.Length; i++)
+            {
+                if (str[i] == "登录成功")   //如果str中的对象有“登录成功”
+                {
+                    UIGameManager.Instance.ShowUI(UIName.UIHome);  //切换UI
+                    UIGameManager.Instance.HideUI(UIName.UILogin);
+                }
+            }
+        }
+        www.Dispose();   //释放资源
+    }
+}
+
+```
+
+注册请求
+
+```C#
+using UnityEngine;
+using System.Collections;
+
+public class UIRegisterHandler : UIHandler {
+
+    private UIButton login_btn;
+    private UIButton return_btn;
+    private UIInput username;
+    private UIInput password;
+    private string pathPost = "http://localhost/crazyphrase/reg.php";  //注册请求地址
+    // Use this for initialization
+    void Start()
+    {
+        login_btn = GetComponentByName<UIButton>("login_btn");
+        EventDelegate.Add(login_btn.onClick, Onlogin_btnClick);
+        return_btn = GetComponentByName<UIButton>("return_btn");
+        EventDelegate.Add(return_btn.onClick, OnReturn_btnClck);
+        username = GetComponentByName<UIInput>("username");
+        password = GetComponentByName<UIInput>("password");
+    }
+
+    void Onlogin_btnClick()
+    {
+        StartCoroutine(Register(pathPost, username.value, password.value));
+    }
+
+    void OnReturn_btnClck()
+    {
+        UIGameManager.Instance.ShowUI(UIName.UILogin);
+        UIGameManager.Instance.HideUI(UIName.UIRegister);
+    }
+
+    IEnumerator Register(string url, string Text, string psw)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("username", Text);
+        form.AddField("password", psw);
+        WWW www = new WWW(url, form); 
+        yield return www;
+        if (www.isDone)
+        {
+            print("注册成功");  //注册成功后会在数据库中显示注册内容
+        }
+    }
+}
+
+```
 
