@@ -6,9 +6,9 @@
 
 解题：
 
-首先，给定Excel文件，cut.xls，那么这种格式的Excel是不能直接读取的，要转换一下格式，将.xls转换为.xlsx格式。
+首先，给定Excel文件，cut.xls，第一种方式是直接读取.xls格式文档，第二种方式是要转换一下格式，将.xls转换为.xlsx格式。
 
-方法：打开cut.xls, 将其另存为，这时在保存类型中选择.xlsx类型再保存，将转换好的Excel文档拖放到Unity中的Project面板中
+转换格式方式：打开cut.xls, 将其另存为，这时在保存类型中选择.xlsx类型再保存，将转换好的Excel文档拖放到Unity中的Project面板中
 
 其次，我们需要插件，在网上找Excel.dll应用程序扩展、ICSharpCode.SharpZipLib.dll应用程序扩展和System.Data.dll应用程序扩展，将下载好的三个插件放在Unity的Project面板中，存放在Plugins文件夹中。
 
@@ -32,47 +32,59 @@ public class UnityExcle : MonoBehaviour {
     int rows;
     string nvalue;
     int i = 0;
+    int index = 0;
     // Use this for initialization
     void Start()
     {
-        readData = GameObject.Find("Text");
+
     }
     void Update()
     {
-        Loadxlsx();
+        List<string> temp = Loadxlsx();
         if (Input.GetMouseButtonDown(0))
         {
-
-            readData.text = nvalue + "\n";
-            i++;
-            if (i == 7)
-            {
-                i = 0;
-            }
-
+            readData.text = temp[index++];
+            //print(index);
+            if (index == 7)
+                index = 0;
+            //当不用List<string>返回值时可以使用
+	    //readData.text = nvalue;
+            //i++;
+            //if (i == 7)
+            //{
+            //    i = 0;
+            //}
         }
     }
 
-    void Loadxlsx()
+    List<string> Loadxlsx()
     {
+        //读取.xlsx格式文档                                             //打开filepath路径中的XML文件（文件流对象）
         FileStream stream = File.Open(Application.dataPath + "/cut.xlsx", FileMode.Open, FileAccess.Read);
+        IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(stream);  //读取.xlsx文档
+        
+        //读取.xls格式文档
+        //FileStream stream = File.Open(Application.dataPath + "/cut.xls", FileMode.Open, FileAccess.Read);
+        //IExcelDataReader excelReader = ExcelReaderFactory.CreateBinaryReader(stream);   //使用流读取.xls格式文档
+        DataSet result = excelReader.AsDataSet();  //作为数据集进行储存
 
-        IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(stream);
+        int columns = result.Tables[0].Columns.Count;  //列
+        int rows = result.Tables[0].Rows.Count;   //行
+        
+	//当不用List<string>返回值时可以使用
+        //for (int j = 0; j < columns; j++)
+        //{
+        //    nvalue = result.Tables[0].Rows[i][j].ToString();
+        //}
 
-        DataSet result = excelReader.AsDataSet();
-
-        int columns = result.Tables[0].Columns.Count;
-        rows = result.Tables[0].Rows.Count;
-
-
-        for (int j = 0; j < columns; j++)
+        List<string> strList = new List<string>();
+        for (int j = 0; j < rows; j++)
         {
-            nvalue = result.Tables[0].Rows[i][j].ToString();
-        }
-
+            strList.Insert(j, result.Tables[0].Rows[j][0].ToString());  //将0列j行的数据插入到列表中
+        }
+        return strList;
     }
 }
-
 ```
 
 # 第二题
