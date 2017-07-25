@@ -413,6 +413,75 @@ using System.Threading;
 
 1：编写一个程序，开启3个线程，这3个线程的ID分别为A、B、C，每个线程将自己的ID在屏幕上打印10遍，要求输出结果必须按ABC的顺序显示；如：ABC0ABC1….依次递推。
 
+【答案】
+
+```C#
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Threading;
+
+namespace XianCheng
+{
+    private static long number = 0;
+    class Program
+    {
+        //线程是通过“时间片轮转”的方式执行的，它是没有规律的 
+        static void Main(string[] args)
+        {
+		//线程A：输出A
+            Thread threadA = new Thread(delegate ()
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    while (Interlocked.Read(ref number) != 0)
+                    {
+                        Thread.Sleep(10);
+                    }
+                    Console.Write("A");
+                    Interlocked.Increment(ref number); //由0到1
+                }
+            });
+
+            //线程B：输出B
+            Thread threadB = new Thread(delegate()
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    while (Interlocked.Read(ref number) != 1)
+                    {
+                        Thread.Sleep(10);
+                    }
+                    Console.Write("B");
+                    Interlocked.Increment(ref number); //由1到2
+                }
+            });
+
+            //线程C：输出C和i
+            Thread threadC = new Thread(delegate()
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    while (Interlocked.Read(ref number) != 2)
+                    {
+                        Thread.Sleep(10);
+                    }
+                    Console.Write("C");
+                    Console.Write(i);
+                    Interlocked.Exchange(ref number, 0);   //由2到0
+                }
+            });
+            //启动线程
+            threadA.Start();
+            threadB.Start();
+            threadC.Start();
+	}
+}
+```
+
 2：有四个线程1、2、3、4。线程1的功能就是输出1，线程2的功能就是输出2，以此类推………现在有四个文件ABCD。初始都为空。现要让四个文件呈如下格式：
 
 A：1 2 3 4 1 2….
