@@ -233,6 +233,199 @@ void funName()
 添加代码
 
 ```C#
+using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using UnityEngine.UI;
+
+public class NetworkViewChatTest : UIHandler
+{
+
+    private string IP = "127.0.0.1";   //创建或链接的服务器地址
+    private int Port = 1000;    //端口号
+
+    private string myName;
+    private string textRecord = "";  //聊天消息记录
+    private string textToSend = "";   //将要发送的消息
+
+    private Dictionary<string, string> manlist = new Dictionary<string, string>();
+    private List<string> names = new List<string>();  //聊天室当前人员列表
+    private bool isChat;   //控制是否可以聊天
+
+    private NetworkView networkView;     //NetworkView组件
+
+    private GameObject obj;   //通过obj获取组件
+    private Button CreateServer_btn, ClientConnect_btn, SendButton, DisconnectBtn;
+    private Text CurClientNum, ChatTalk, NameChat, DisconnectText;
+    private InputField NameInputField,ChatInputField;
+    private Image ChatPanel, CreatePanel;
+    //string txt = "当前房间人员：\n";   //实验没成功
+    void Awake()
+    {
+        networkView = GetComponent<NetworkView>();   //获取组件
+    }
+   // Use this for initialization
+    void Start ()
+    {
+        obj = GetByName("CreateServer");
+        if (obj != null)
+        {
+            CreateServer_btn = obj.GetComponent<Button>();
+            CreateServer_btn.onClick.AddListener(CreateServer);
+        }
+        obj = GetByName("ClientConnect");
+        if (obj != null)
+        {
+            ClientConnect_btn = obj.GetComponent<Button>();
+            ClientConnect_btn.onClick.AddListener(ClientConnect);
+        }
+        obj = GetByName("SendButton");
+        if (obj != null)
+        {
+            SendButton = obj.GetComponent<Button>();
+            SendButton.onClick.AddListener(SendMsgBtn);
+        }
+        obj = GetByName("DisconnectBtn");
+        if (obj != null)
+        {
+            DisconnectBtn = obj.GetComponent<Button>();
+            DisconnectBtn.onClick.AddListener(DisconnectButton);
+        }
+        NameInputField = GetByName("NameInputField").GetComponent<InputField>();
+        CurClientNum = GetByName("CurClientNum").GetComponent<Text>();
+        ChatTalk = GetByName("ChatTalk").GetComponent<Text>();
+        ChatInputField = GetByName("ChatInputField").GetComponent<InputField>();
+        NameChat = GetByName("NameChat").GetComponent<Text>();
+        ChatPanel = GetByName("ChatPanel").GetComponent<Image>();
+        CreatePanel = GetByName("CreatePanel").GetComponent<Image>();
+        DisconnectText = GetByName("DisconnectText").GetComponent<Text>();
+    }
+	
+	// Update is called once per frame
+	void Update () {
+	    if (isChat)   //在可以聊天的时候进行处理
+	    {
+	        ChatTalk.text = textRecord;  //聊天框内现实的内容
+	        string txt = "";
+
+          foreach (var s in names)   
+	        {
+	            txt += s + "\n";
+	        }
+	        NameChat.text = txt;
+	        textToSend = ChatInputField.text;   
+	    }
+	    else   //默认记录名字
+	    {
+	        myName = NameInputField.text;
+	    }
+	}
+
+    void SendMsgBtn()   //发送消息按钮事件
+    {
+        networkView.RPC("SendText", RPCMode.All, myName+":"+textToSend);
+        ChatInputField.text = "";
+    }
+
+    void DisconnectButton() //关闭聊天按钮事件
+    {
+        ChatPanel.gameObject.SetActive(false);
+        CreatePanel.gameObject.SetActive(true);
+        Network.Disconnect();
+        isChat = false;
+    }
+
+    void ClientConnect()  //客户端连接服务器
+    {
+        NetworkConnectionError error = Network.Connect(IP, Port);
+        if (error == NetworkConnectionError.NoError)
+        {
+            DisconnectText.text = "关闭聊天室";
+            CreatePanel.gameObject.SetActive(false);
+            ChatPanel.gameObject.SetActive(true);
+            isChat = true;
+            print("连接成功！");
+        }
+    }
+
+    void OnConnectedToServer() //连接服务器
+    {
+        print("连接到服务器");
+        networkView.RPC("Server_Join", RPCMode.Server, myName);
+    }
+
+    void OnPlayerDisconnected(NetworkPlayer player)  //当客户端断开服务器时被调用的函数
+    {
+        string id = player.ToString();
+        print(id+"离开");
+        if (manlist.ContainsKey(id))
+        {
+            networkView.RPC("SendText", RPCMode.All, manlist[id]+"离开了聊天室");
+            manlist.Remove(id);
+        }
+        Server_UpdateNameList();
+    }
+
+    void CreateServer()  //创建服务器
+    {
+        NetworkConnectionError error = Network.InitializeServer(10, Port, false);
+        if (error == NetworkConnectionError.NoError)
+        {
+            print("服务器创建成功！");
+            DisconnectText.text = "关闭聊天室";
+            ChatPanel.gameObject.SetActive(true);
+            CreatePanel.gameObject.SetActive(false);
+            manlist.Add(Network.player.ToString(), myName);
+            Server_UpdateNameList();
+            isChat = true;
+        }
+    }
+
+    void Server_UpdateNameList()  //服务器向客户端发送人员名单及聊天记录，供客户端更新显示
+    {  
+        //string textToSend = "";
+        foreach (var item in manlist)
+        {
+            textToSend += item.Value + "|";
+        }
+        networkView.RPC("RPC_GetNameList", RPCMode.All, textToSend);
+        networkView.RPC("RPC_ChatRecordUpdate", RPCMode.All, textRecord);
+        CurClientNum.text = "当前连接人数：" + (Network.connections.Length + 1);
+    }
+
+    [RPC]  //人员名单
+    void RPC_GetNameList(string content, NetworkMessageInfo info)
+    {
+        string[] ss = content.Split('|');
+        names.Clear();
+        names.AddRange(ss);
+    }
+
+    [RPC]  //聊天记录
+    void RPC_ChatRecordUpdate(string content)
+    {
+        textRecord = content;
+        CurClientNum.text = "当前连接人数：" + (Network.connections.Length + 1);
+    }
+
+    [RPC]  //当客户端连接成功时向服务器发送的消息
+    void Server_Join(string client_name, NetworkMessageInfo info)
+    {
+        string id = info.sender.ToString();
+        print("Joined:"+id);
+        networkView.RPC("SendText", RPCMode.All, client_name+"加入了聊天室");
+        manlist.Add(id, client_name);
+        Server_UpdateNameList();
+    }
+
+    [RPC]  //发送文本
+    void SendText(string content, NetworkMessageInfo info)
+    {
+        textRecord += content + "\n";
+    }
+}
 
 ```
 
