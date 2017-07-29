@@ -2,7 +2,7 @@
 
 ## Photon Server的配置
 
-在官网https://www.photonengine.com/en/OnPremise/Download下载服务器SDK后，解压出来四个文件夹：
+在官网https://www.photonengine.com/en/OnPremise/Download 下载服务器SDK后，解压出来四个文件夹：
 
 * deploy：主要存放photon的服务器控制程序和服务端Demo，（注：此文件夹是重要的文件夹哦，photon server 的运行文件在次文件夹中）。打开文件夹，分别有bin_Win32和bin_Win64文件夹对应不同操作系统，打开两个文件夹后PhotonControl.exe便是photonServer的启动文件。
 
@@ -150,6 +150,7 @@ namespace ChatServer
 		  >
 		  </TCPListener>
 ```
+这里的端口号是自己设置的，不要与之前设置的重复，尽量不要在1024之前。
 
 可以在以后的Unity连接服务器是使用本地地址和这里面设置的端口号（Port）和OverrideApplication值,如
 
@@ -162,7 +163,7 @@ myPeer.Connect("127.0.0.1:8023", "ChatServer");//连接的IP，端口
 
 下面开始编写客户端代码，首先从官网下载https://www.photonengine.com/Download/Photon-Unity3D-Sdk_v4-0-0-10.zip
 
-打开unity3d编辑器，首先把Photon-Unity3D_v3-0-1-14_SDK\libs\Release\Photon3Unity3D.dll导入到Unity中，新建脚本TextPhotonClient.cs,脚本代码如下:
+打开unity3d编辑器，首先把Photon-Unity3D_v3-0-1-14_SDK\libs\Release\Photon3Unity3D.dll 导入到Unity中，放在Plugins文件夹中，新建脚本TextPhotonClient.cs,脚本代码如下:
 
 ```C#
 using UnityEngine;
@@ -197,16 +198,16 @@ public class TextPhotonClient : MonoBehaviour, IPhotonPeerListener {
     }
 
     private bool isConnected = false;
-    void OnGUI()
-    {
-        if (isConnected)
-        {
-            if (GUILayout.Button("Send a opertion To PhotonServer"))
-            {
-                Dictionary<byte, object> param = new Dictionary<byte, object>();
-                param.Add(1, "test");
+    void OnGUI()  //添加UGUI按钮
+    {
+        if (isConnected)   //如果是连接状态
+        {
+            if (GUILayout.Button("Send a opertion To PhotonServer"))   //生成按钮Send a opertion To PhotonServer，点击后执行
+            {
+                Dictionary<byte, object> param = new Dictionary<byte, object>();   //创建字典，在字典内添加元素
+                param.Add(1, "test");
                 param.Add(2, "1234");
-                myPeer.OpCustom(1, param, true);  //向服务端发送请求，1代表不同的状态设定为登录
+                myPeer.OpCustom(1, param, true);  //将字典内元素发送给服务器，向服务端发送请求，1代表不同的状态设定为登录
             }
         }
     }
@@ -214,38 +215,107 @@ public class TextPhotonClient : MonoBehaviour, IPhotonPeerListener {
     //检测连接状态
     public void OnStatusChanged(StatusCode statusCode)
     {
-        switch (statusCode)
-        {
-                case StatusCode.Connect:
-                    print("我已连接Photon服务器");
+        switch (statusCode)  //判断当前的状态
+        {
+                case StatusCode.Connect:   //连接状态
+                    print("我已连接Photon服务器");
                     isConnected = true;
                     break;
-                case StatusCode.Disconnect:
-                    print("我已断开Photon服务器");
+                case StatusCode.Disconnect:  //断开状态
+                    print("我已断开Photon服务器");
                     break;
         }
     }
 
-    private PhotonPeer myPeer;
+    private PhotonPeer myPeer;    //持有PhotonPeer变量
 
     // Use this for initialization
     void Start () {
         //与服务端建立连接（TCP协议）
-	    myPeer = new PhotonPeer(this, ConnectionProtocol.Tcp);
-        myPeer.Connect("127.0.0.1:8023", "ChatServer");//连接的IP，端口
-    }
+	myPeer = new PhotonPeer(this, ConnectionProtocol.Tcp);
+        myPeer.Connect("127.0.0.1:8023", "ChatServer");//连接的IP，端口  ChatServer是PhotonServer.Config中的OverrideApplication值
+    }
 	
 	// Update is called once per frame
 	void Update () {
 	    print("...");
-        myPeer.Service();   //发送请求
+            myPeer.Service();   //发送请求
 	}
 }
 ```
 
+接下来，完善服务端（ChatServer）代码中的ChatPeer代码，代码如下：
 
+```C#
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Photon.SocketServer;
+using PhotonHostRuntimeInterfaces;
 
+namespace ChatServer
+{
+    //用来与客户端进行通讯的类
+    public class ChatPeer : ClientPeer
+    {
+        //构造函数：实现父类
+        public ChatPeer(InitRequest initRequest) : base(initRequest)
+        {
+            
+        }
+        //当断开连接时调用
+        protected override void OnDisconnect(DisconnectReason reasonCode, string reasonDetail)
+        {
+            
+        }
+        //服务端用来处理客户端发来的消息，可以返回消息给客户端
+        protected override void OnOperationRequest(OperationRequest operationRequest, SendParameters sendParameters)
+        {
+            switch (operationRequest.OperationCode) //用来判断客户端发送请求的类型
+            {
+                case 1:   //代表登录
+                    if (operationRequest.Parameters.Count < 2)  //登录异常
+                    {
+                        OperationResponse response = new OperationResponse(operationRequest.OperationCode);
+                        response.DebugMessage = "登录失败";
+                        response.ReturnCode = 2;   //2代表失败
+                        SendOperationResponse(response, sendParameters); //回应客户端
+                    }
+                    else
+                    {
+                        string userID = (string)operationRequest.Parameters[1];
+                        string userPW = (string)operationRequest.Parameters[2];
+                        //与服务端存在的数据进行判断
+                        if (userID == "test" && userPW == "1234")
+                        {
+                            Dictionary<byte, object> parameters = new Dictionary<byte, object>();
+                            parameters.Add(1, userID);
+                            parameters.Add(2, userPW);
+                            parameters.Add(3, "xiaoqiang");
+                            OperationResponse response = new OperationResponse(operationRequest.OperationCode, parameters);
+                            response.DebugMessage = "登陆成功";
+                            response.ReturnCode = 1;  //代表登陆成功
+                            SendOperationResponse(response, sendParameters);
+                        }
+                        else
+                        {
+                            OperationResponse response = new OperationResponse(operationRequest.OperationCode);
+                            response.DebugMessage = "账号或密码错误";
+                            response.ReturnCode = 2;  //代表登陆失败
+                            SendOperationResponse(response, sendParameters);
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+}
+```
 
+完善服务端代码后，记得要生成一下新的解决方案，然后运行PhotonServer，待服务器运行后，再在Unity中运行，连接服务器后，点击按钮Send a opertion To PhotonServer，就会执行我们的登录了。
+
+步骤比较繁琐，多看看
 
 
 
