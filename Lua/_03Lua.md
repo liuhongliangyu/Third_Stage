@@ -68,7 +68,7 @@ table              LuaInterface.LuaTable
 function           LuaInterface.LuaFunction
 ```
 
-## 把一个C#方法注册金lua的一个全局方法
+## 把一个C#方法注册进lua的一个全局方法
 
 ```C#
  static void Main(string[] args)
@@ -173,9 +173,9 @@ namespace LuaText
 
 ### 在Lua中访问C#中的方法——特使情况
 
-当函数中有out或ref参数时，out参数和ref参数和函数的返回值一起返回，并且调用时，out参数不需要传入C#函数定义
+#### 1. 当函数中有out或ref参数时，out参数和ref参数和函数的返回值一起返回，并且调用时，out参数不需要传入C#函数定义
 
-#### out参数
+##### out参数
 
 * Lua中
 
@@ -194,7 +194,7 @@ public void TestOut(string name, out int count)
 }
 ```
 
-#### ref参数
+##### ref参数
 
 * lua
 
@@ -214,22 +214,61 @@ print(void,count)
 }
 ```
 
+#### 2. 当有重载函数的时候，调用函数会自动匹配第一个匹配的函数，这时可以使用get_method_bysig函数得到C#中指定类的指定参数的函数方法
 
+* 当在C#脚本中有重载函数时，在lua中调用，如论怎么传参都会是匹配第一个函数，如下代码
 
+```C#
+ public void Method(int i)
+{
+    Console.WriteLine("Method Int i = " + i);
+}
+public void Method(string str)
+{
+    Console.WriteLine("Method string str = "+str);
+}
+```
 
+```lua
+program1:Method(111)
+```
 
+无论是使用上面的lua代码还是使用下面的lua代码
 
+```lua
+program1:Method("111")
+```
 
+在控制台上都会输出：Method Int i = 111
 
+又或者是将C#代码的两个方法顺序变换一下，即：
 
+```C#
+public void Method(string str)
+{
+    Console.WriteLine("Method string str = "+str);
+}
+ public void Method(int i)
+{
+    Console.WriteLine("Method Int i = " + i);
+}
+```
 
+那么无论是使用哪个lua脚本，都会输出：Method string str = 111
 
+为了达到我们想要的目的，输入什么类型的参数，就会得到什么样类型的结果，我们在lua中可以使用get_method_bysig函数得到C#中指定类的指定参数的函数方法,即:
 
+```lua
+luaMethod = luanet.get_method_bysig(program1, "Method", "System.String")
+luaMethod(1111)
+--控制台输出：Method string str = 1111
+```
 
+```lua
+luaMethod = luanet.get_method_bysig(program1, "Method", "System.Int32")
+luaMethod(1111)
+--控制台输出：Method Int i = 1111
+```
 
-
-
-
-
-
+这样，不论C#中的方法的顺序是什么，都可以得到我们想要的结果
 
