@@ -59,7 +59,7 @@ AseetBundle文件的生成是通过UnityEditor.BuildPipeline类的BuildAssetBund
 
 左键点击WAMP图标-www目录，新建一个文件夹并命名为Unity,拖入一张图片（这里以link.png为例）。
 
-打开浏览器，输入http://127.0.0.1/Unity/link.png并按回车，浏览器中显示了我们刚刚上传的图片，如图下图所示。127.0.0.1是本机IP地址，后面的路径则是www文件夹下的路径。将ABs文件夹复制至www下的Unity文件夹。
+打开浏览器，输入 http://127.0.0.1/Unity/link.png 并按回车，浏览器中显示了我们刚刚上传的图片，如图下图所示。127.0.0.1是本机IP地址，后面的路径则是www文件夹下的路径。将ABs文件夹复制至www下的Unity文件夹。
 
 ![](https://nts.newbieol.com/static/k25/03_%E5%BC%95%E6%93%8E%E9%AB%98%E7%BA%A7%E8%BF%9B%E9%98%B6/%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E5%8F%8AHTTP%E5%BA%94%E7%94%A8/AssetBundle/images/Image5.png)
 
@@ -69,7 +69,7 @@ AseetBundle文件的生成是通过UnityEditor.BuildPipeline类的BuildAssetBund
 
 ![](https://nts.newbieol.com/static/k25/03_%E5%BC%95%E6%93%8E%E9%AB%98%E7%BA%A7%E8%BF%9B%E9%98%B6/%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E5%8F%8AHTTP%E5%BA%94%E7%94%A8/AssetBundle/images/Image6.png)
 
-WWW.LoadFromCacheOrDownload();这个下载函数是AssetBundle专用的，可以很方便地处理AssetBundle文件的版本更新。在通过此函数下载AssetBundle后，资源会被缓存至本地储存起来；在下次调用此函数时，如果AssetBundle有新版本则下载新版本，如果没有新版本则不下载而直接从本地读取。
+WWW.LoadFromCacheOrDownload(); 这个下载函数是AssetBundle专用的，可以很方便地处理AssetBundle文件的版本更新。在通过此函数下载AssetBundle后，资源会被缓存至本地储存起来；在下次调用此函数时，如果AssetBundle有新版本则下载新版本，如果没有新版本则不下载而直接从本地读取。
 缓存的资源可以通过Caching.CleanCache()函数全部删除。
 
 # 自己测试
