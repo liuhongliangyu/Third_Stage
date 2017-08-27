@@ -74,6 +74,7 @@ function           LuaInterface.LuaFunction
  static void Main(string[] args)
 {
     Lua lua = new Lua();  //创建Lua解析器
+    Program program = new Program();
      //将C#中的普通方法注册到lua中，方法必须是pubic
      // 第一个参数：注册到lua中，该方法的名字。第二个参数：注册哪个对象。第三个参数：这个对象里的方法 
     lua.RegisterFunction("NormalMethod", program, program.GetType().GetMethod("NormalMethod"));
