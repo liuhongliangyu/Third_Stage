@@ -26,6 +26,8 @@
 
 # 手柄按键介绍
 
+参考链接：http://www.cnblogs.com/llstart-new0201/p/7048313.html#undefined
+
 在学习手柄操作之前，我们先来了解一下手柄上的按钮到底有那些？
 
 ![](https://nts.newbieol.com/static/k25/04_%E8%99%9A%E6%8B%9F%E7%8E%B0%E5%AE%9E%E5%BC%80%E5%8F%91/02_HTCVive%E6%89%8B%E6%9F%84%E7%BC%96%E7%A8%8B/images/htc_shoubing.png)
