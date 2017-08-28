@@ -98,13 +98,22 @@ Shader "VRShader/DoubleSided"
 
 ![](https://nts.newbieol.com/static/k25/04_%E8%99%9A%E6%8B%9F%E7%8E%B0%E5%AE%9E%E5%BC%80%E5%8F%91/06_GoogleVR%E5%85%A8%E6%99%AF/images/20170315121641.jpg)
 
+# GoogleVR视频
 
+## Easr Move Texture Video插件
 
+下载地址： 链接：http://pan.baidu.com/s/1gfvhFDx 密码：c3xu
 
+1. 导入插件，和视频（视屏可能有要求，普通MP4...），在上面的项目中新建一个场景
 
+2. 创建一个Sphere，将Scale扩大3倍即可。
 
+3. 拖动GvrViewerMain到场景中，并把默认的Main Camera设置到球体中心位置(0,0,0),使摄像机从球内部进行拍摄。
 
+4. 在Sphere上添加AudioSource组件，用来播放声音，
 
+5. 在Sphere上添加VideoPlay组件，将视频资源拖放到VideoClip下面，并将Sphere拖放到VideoPlayer/AudioSource中。
 
+6. 将上面的Shader文件拖放到Sphere上面，并设置Sphere的Shader属性为VRShader/DoubleSided
 
-
+7. 运行，即可观看视频。
