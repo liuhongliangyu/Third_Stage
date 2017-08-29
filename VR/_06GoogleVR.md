@@ -98,6 +98,28 @@ Shader "VRShader/DoubleSided"
 
 ![](https://nts.newbieol.com/static/k25/04_%E8%99%9A%E6%8B%9F%E7%8E%B0%E5%AE%9E%E5%BC%80%E5%8F%91/06_GoogleVR%E5%85%A8%E6%99%AF/images/20170315121641.jpg)
 
+# 发布Android
+
+* 首先，替换发布平台，将Unity项目的发布平台从PC转为Android。
+
+* 其次，下载Android平台的发布编辑工具包(Unity安装时Andriod发布平台中可能没有，没有的就要下载一下)。下载完毕后，重启Unity。下载JDK集成在unity项目中。
+
+* 再者，在Edit找到PreFercenes菜单。External  Tools 菜单里选择Andriod环境配置，选择SDK与JDK的安装路径。
+
+* 最后，设置发布的参数，一共三个。
+
+    * 第一：勾选上Other  Setting菜单里中Virtual  Reality  Surppread选项 ，并选择Cardbored选项，代表一个纸盒子，一类产品。
+
+    * 第二：改变名字，公司和项目名称。
+
+    * 第三：选择Other  Setting菜单里中	minimum API Level选择为5.1版本。这里的选项为unity所限制的版本，不能低于unity的版本。
+
+    * 第四：选择库文件，选择.NET2.0，是最完整的档案，档案量大。
+
+
+* 第三部分：进行发布
+
+
 # GoogleVR视频
 
 ## Easr Move Texture Video插件
