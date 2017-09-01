@@ -33,7 +33,7 @@ http://blog.csdn.net/kakashi8841/article/details/21877131
 （1）使用JsonData生成普通的JSON
 
 ```C#
-JsonData data = ew JsonData();
+JsonData data = new JsonData();
 data["name"] = "zhangsan";
 data["age"] = 18;
 data["sex"] = "男";
@@ -47,15 +47,16 @@ print(json);
 （2）使用JsonData生成嵌套结构JSON
 
 ```C#
-JsonData data = new JsonData();
-data["name"] = "zhangsan";
-data["age"] = 28;
-data["sex"] = "男";
-string json2 = data.ToJson();
-print(json2);
+	JsonData data2 = new JsonData();
+        data2["name"] = "zhansan";
+        data2["info"] = new JsonData();
+        data2["info"]["sex"] = "male";
+        data2["info"]["age"] = 28;
+		string  json2 = data2.ToJson();
+        Debug.Log(json2);
 
         ---------------运行结果-----------------
-      {"name":"zhansan","info":{"sex":"male","age":28}}   
+      {"name":"zhansan","info":{"sex":"male","age":28}} 
 ```
 
 （3）使用JsonMapper生成JSON
